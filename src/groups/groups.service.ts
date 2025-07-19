@@ -4,11 +4,13 @@ import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MembersService } from 'src/members/members.service';
+import { MembersRepository } from 'src/members/members.repository';
 
 @Injectable()
 export class GroupsService {
   constructor(
     private readonly groupsRepository: GroupsRepository,
+    private readonly membersRepository: MembersRepository,
     private readonly membersService: MembersService,
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
   ) {}
@@ -48,6 +50,7 @@ export class GroupsService {
     const group = await this.groupsRepository.findByCode(inviteCode);
     if (!group || group.hostId !== hostId)
       return { message: '그룹의 호스트만 그룹을 삭제할 수 있습니다.' };
+    await this.membersRepository.deleteManyByGroup(inviteCode);
     await this.groupsRepository.deleteOneByCode(inviteCode);
   }
 

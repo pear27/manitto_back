@@ -35,4 +35,12 @@ export class MembersRepository {
         `그룹 코드(${groupCode})에 해당하는 사용자(${userId})를 찾을 수 없습니다.`,
       );
   }
+
+  async deleteManyByGroup(groupCode: string): Promise<void> {
+    const result = await this.memberModel.deleteMany({ groupCode });
+    if (result.deletedCount === 0)
+      throw new NotFoundException(
+        `그룹 코드(${groupCode})에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+  }
 }
