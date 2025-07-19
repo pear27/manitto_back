@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Member, MemberDocument } from './schemas/member.schema';
 import { Model } from 'mongoose';
@@ -22,5 +22,13 @@ export class MembersRepository {
     userId: string,
   ): Promise<MemberDocument | null> {
     return this.memberModel.findOne({ groupCode, userId });
+  }
+
+  async deleteOne(groupCode: string, userId: string): Promise<void> {
+    const result = await this.memberModel.deleteOne({ groupCode, userId });
+    if (result.deletedCount === 0)
+      throw new NotFoundException(
+        `그룹 코드(${groupCode})에 해당하는 사용자(${userId})를 찾을 수 없습니다.`,
+      );
   }
 }

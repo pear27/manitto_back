@@ -46,4 +46,11 @@ export class GroupsController {
     const hostId = req.user.kakaoId;
     return this.groupsService.deleteGroup(inviteCode, hostId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':groupCode/members')
+  async leaveGroup(@Param('groupCode') groupCode: string, @Req() req) {
+    const userId = req.user.kakaoId;
+    return this.membersService.deleteMember(groupCode, userId);
+  }
 }
