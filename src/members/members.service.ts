@@ -74,6 +74,6 @@ export class MembersService {
         `그룹(${groupCode})에 해당하는 사용자만 멤버를 열람할 수 있습니다.`,
       );
 
-    return this.membersRepository.findManyByGroup(groupCode);
+    return await this.membersRepository.findManyByGroup(groupCode);
   }
 }
