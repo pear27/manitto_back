@@ -30,6 +30,11 @@ export class MembersService {
       );
     }
 
+    if (group.isLocked)
+      throw new ForbiddenException(
+        `해당 그룹(${groupCode})은 초대 마감되었습니다.`,
+      );
+
     const isExisting = await this.membersRepository.findOneByGroupAndUser(
       groupCode,
       userId,
