@@ -17,6 +17,10 @@ export class MembersRepository {
     return new this.memberModel({ groupCode, userId, nickname }).save();
   }
 
+  async findManyByGroup(groupCode: string): Promise<Member[]> {
+    return this.memberModel.find({ groupCode }).exec();
+  }
+
   async findOneByGroupAndUser(
     groupCode: string,
     userId: string,

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -22,7 +23,7 @@ export class MembersService {
   async createMember(groupCode: string, userId: string) {
     const user = await this.usersRepository.findOneByKakaoId(userId);
     const group = await this.groupsRepository.findByCode(groupCode);
-    
+
     if (!user || !group) {
       throw new NotFoundException(
         `사용자(${userId}) 또는 그룹(${groupCode})을 찾을 수 없습니다.`,
@@ -52,5 +53,19 @@ export class MembersService {
 
   async deleteMember(groupCode: string, userId: string) {
     await this.membersRepository.deleteOne(groupCode, userId);
+  }
+
+  async getMemberList(groupCode: string, userId: string) {
+    const member = await this.membersRepository.findOneByGroupAndUser(
+      groupCode,
+      userId,
+    );
+
+    if (!member)
+      throw new ForbiddenException(
+        `그룹(${groupCode})에 해당하는 사용자만 멤버를 열람할 수 있습니다.`,
+      );
+
+    return this.membersRepository.findManyByGroup(groupCode);
   }
 }
