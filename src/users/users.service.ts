@@ -6,6 +6,11 @@ import { UsersRepository } from './users.repository';
 export class UserService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  async getNicknameByKakaoId(kakaoId: string) {
+    const user = await this.usersRepository.findOneByKakaoId(kakaoId);
+    return { nickname: user?.nickname };
+  }
+
   async updateNicknameByKakaoId(kakaoId: string, nickname: string) {
     const updatedUser = await this.usersRepository.findOneAndUpdate(
       { kakaoId },
@@ -19,5 +24,9 @@ export class UserService {
       message: '✅ 닉네임 변경 완료!',
       nickname: updatedUser.nickname,
     };
+  }
+
+  async deleteUser(kakaoId: string): Promise<void> {
+    await this.usersRepository.deleteOneByKakaoId(kakaoId);
   }
 }
