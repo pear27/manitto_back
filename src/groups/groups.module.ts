@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Group, GroupSchema } from './group.schema';
+import { Group, GroupSchema } from './schemas/group.schema';
 import { GroupController } from './groups.controller';
 import { GroupsRepository } from './groups.repository';
 import { GroupsService } from './groups.service';

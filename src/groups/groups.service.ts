@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Group, GroupDocument } from './group.schema';
+import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -36,6 +36,14 @@ export class GroupsService {
       inviteCode: group.inviteCode,
       name: group.name,
     };
+  }
+
+  // 그룹 삭제 함수
+  async deleteGroup(inviteCode: string, hostId: string) {
+    const group = await this.groupsRepository.findByCode(inviteCode);
+    if (!group || group.hostId !== hostId)
+      return { message: '그룹의 호스트만 그룹을 삭제할 수 있습니다.' };
+    await this.groupsRepository.deleteOneByCode(inviteCode);
   }
 
   // 고유한 초대코드 생성 함수
