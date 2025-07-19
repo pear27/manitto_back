@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -23,34 +24,41 @@ export class GroupsController {
   @Post()
   async createGroup(@Req() req, @Body('name') name: string) {
     const hostId = req.user.kakaoId;
-    return this.groupsService.createGroup(name, hostId);
+    return await this.groupsService.createGroup(name, hostId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':groupCode')
+  async getGroupInfo(@Param('groupCode') groupCode: string, @Req() req) {
+    const userId = req.user.kakaoId;
+    return await this.groupsService.getGroupInfo(groupCode, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post(':groupCode/members')
   async joinGroup(@Param('groupCode') groupCode: string, @Req() req) {
     const userId = req.user.kakaoId;
-    return this.membersService.createMember(groupCode, userId);
+    return await this.membersService.createMember(groupCode, userId);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('lock')
-  async lockGroup(@Req() req, @Body('inviteCode') inviteCode: string) {
+  @Patch(':inviteCode/lock')
+  async lockGroup(@Param('inviteCode') inviteCode: string, @Req() req) {
     const hostId = req.user.kakaoId;
-    return this.groupsService.lockGroup(inviteCode, hostId);
+    return await this.groupsService.lockGroup(inviteCode, hostId);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete()
-  async deleteGroup(@Req() req, @Body('inviteCode') inviteCode: string) {
+  @Delete(':inviteCode')
+  async deleteGroup(@Param('inviteCode') inviteCode: string, @Req() req) {
     const hostId = req.user.kakaoId;
-    return this.groupsService.deleteGroup(inviteCode, hostId);
+    return await this.groupsService.deleteGroup(inviteCode, hostId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':groupCode/members')
   async leaveGroup(@Param('groupCode') groupCode: string, @Req() req) {
     const userId = req.user.kakaoId;
-    return this.membersService.deleteMember(groupCode, userId);
+    return await this.membersService.deleteMember(groupCode, userId);
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
@@ -30,11 +34,31 @@ export class GroupsService {
     };
   }
 
+  async getGroupInfo(inviteCode: string, userId: string) {
+    const group = await this.groupsRepository.findByCode(inviteCode);
+    if (!group)
+      throw new NotFoundException(
+        `그룹 코드(${inviteCode})에 해당하는 그룹을 찾을 수 없습니다.`,
+      );
+
+    const user = await this.membersRepository.findOneByGroupAndUser(
+      inviteCode,
+      userId,
+    );
+
+    console.log(user);
+    if (!user)
+      throw new NotFoundException(
+        `해당 그룹(${inviteCode})의 정보에 대한 열람 권한이 없습니다.`,
+      );
+    return group;
+  }
+
   // 그룹 잠금 함수 (더 이상 멤버 초대 불가)
   async lockGroup(inviteCode: string, hostId: string) {
     const group = await this.groupsRepository.findByCode(inviteCode);
     if (!group || group.hostId !== hostId) {
-      return { message: '그룹의 호스트만 그룹을 잠글 수 있습니다.' };
+      throw new ForbiddenException('그룹의 호스트만 그룹을 잠글 수 있습니다.');
     }
     await this.groupsRepository.lockGroup(inviteCode);
 
@@ -49,7 +73,9 @@ export class GroupsService {
   async deleteGroup(inviteCode: string, hostId: string) {
     const group = await this.groupsRepository.findByCode(inviteCode);
     if (!group || group.hostId !== hostId)
-      return { message: '그룹의 호스트만 그룹을 삭제할 수 있습니다.' };
+      throw new ForbiddenException(
+        '그룹의 호스트만 그룹을 삭제할 수 있습니다.',
+      );
     await this.membersRepository.deleteManyByGroup(inviteCode);
     await this.groupsRepository.deleteOneByCode(inviteCode);
   }
