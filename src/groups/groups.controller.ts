@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { MembersService } from 'src/members/members.services';
+import { MembersService } from 'src/members/members.service';
 
 @Controller('groups')
 export class GroupsController {

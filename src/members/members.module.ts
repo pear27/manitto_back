@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Member, MemberSchema } from './schemas/member.schema';
 import { MembersController } from './members.controller';
-import { MembersService } from './members.services';
+import { MembersService } from './members.service';
 import { MembersRepository } from './members.repository';
 
 @Global()

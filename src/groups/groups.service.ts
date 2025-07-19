@@ -3,7 +3,7 @@ import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { MembersService } from 'src/members/members.services';
+import { MembersService } from 'src/members/members.service';
 
 @Injectable()
 export class GroupsService {

@@ -21,7 +21,7 @@ export class MembersService {
     const user = await this.usersRepository.findOneByKakaoId(userId);
 
     if (!user) {
-      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
+      throw new NotFoundException(`해당 사용자(${userId})를 찾을 수 없습니다.`);
     }
 
     const isExisting = await this.membersRepository.findOneByGroupAndUser(
@@ -43,5 +43,9 @@ export class MembersService {
       inviteCode: member.groupCode,
       member: member.nickname,
     };
+  }
+
+  async deleteMember(groupCode: string, userId: string) {
+    await this.membersRepository.deleteOne(groupCode, userId);
   }
 }
