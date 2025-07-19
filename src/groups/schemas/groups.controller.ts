@@ -1,4 +1,12 @@
-import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
@@ -18,5 +26,12 @@ export class GroupController {
   async lockGroup(@Req() req, @Body('inviteCode') inviteCode: string) {
     const hostId = req.user.kakaoId;
     return this.groupsService.lockGroup(inviteCode, hostId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  async deleteGroup(@Req() req, @Body('inviteCode') inviteCode: string) {
+    const hostId = req.user.kakaoId;
+    return this.groupsService.deleteGroup(inviteCode, hostId);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Group, GroupDocument } from './group.schema';
 import { Model } from 'mongoose';
@@ -38,5 +38,11 @@ export class GroupsRepository {
 
   async setRevealDate(groupId: string, date: Date): Promise<void> {
     await this.groupModel.updateOne({ _id: groupId }, { revealDate: date });
+  }
+
+  async deleteOneByCode(inviteCode: string): Promise<void> {
+    const group = await this.groupModel.deleteOne({ inviteCode });
+    if (group.deletedCount === 0)
+      throw new NotFoundException('해당 그룹을 찾을 수 없습니다.');
   }
 }
