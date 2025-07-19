@@ -11,7 +11,7 @@ import { GroupsService } from './groups.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('groups')
-export class GroupController {
+export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
   @UseGuards(JwtAuthGuard)

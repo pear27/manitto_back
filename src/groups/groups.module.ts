@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Group, GroupSchema } from './schemas/group.schema';
-import { GroupController } from './groups.controller';
+import { GroupsController } from './groups.controller';
 import { GroupsRepository } from './groups.repository';
 import { GroupsService } from './groups.service';
 
@@ -10,7 +10,7 @@ import { GroupsService } from './groups.service';
   imports: [
     MongooseModule.forFeature([{ name: Group.name, schema: GroupSchema }]),
   ],
-  controllers: [GroupController],
+  controllers: [GroupsController],
   providers: [GroupsRepository, GroupsService],
   exports: [GroupsRepository, GroupsService],
 })
