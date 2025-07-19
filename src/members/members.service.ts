@@ -8,20 +8,25 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Member, MemberDocument } from './schemas/member.schema';
 import { Model } from 'mongoose';
 import { UsersRepository } from 'src/users/users.repository';
+import { GroupsRepository } from 'src/groups/groups.repository';
 
 @Injectable()
 export class MembersService {
   constructor(
     private readonly membersRepository: MembersRepository,
     private readonly usersRepository: UsersRepository,
+    private readonly groupsRepository: GroupsRepository,
     @InjectModel(Member.name) private memberModel: Model<MemberDocument>,
   ) {}
 
   async createMember(groupCode: string, userId: string) {
     const user = await this.usersRepository.findOneByKakaoId(userId);
-
-    if (!user) {
-      throw new NotFoundException(`해당 사용자(${userId})를 찾을 수 없습니다.`);
+    const group = await this.groupsRepository.findByCode(groupCode);
+    
+    if (!user || !group) {
+      throw new NotFoundException(
+        `사용자(${userId}) 또는 그룹(${groupCode})을 찾을 수 없습니다.`,
+      );
     }
 
     const isExisting = await this.membersRepository.findOneByGroupAndUser(
