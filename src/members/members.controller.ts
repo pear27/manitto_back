@@ -7,7 +7,7 @@ export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('/:groupCode')
+  @Get(':groupCode')
   async getMembersOfaGroup(@Param('groupCode') groupCode: string, @Req() req) {
     const userId = req.user.kakaoId;
     return this.membersService.getMemberList(groupCode, userId);

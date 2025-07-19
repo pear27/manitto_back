@@ -25,7 +25,7 @@ export class MembersRepository {
     groupCode: string,
     userId: string,
   ): Promise<MemberDocument | null> {
-    return this.memberModel.findOne({ groupCode, userId });
+    return await this.memberModel.findOne({ groupCode, userId });
   }
 
   async deleteOne(groupCode: string, userId: string): Promise<void> {

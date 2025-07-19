@@ -17,10 +17,6 @@ export class GroupsRepository {
     return new this.groupModel({ inviteCode, name, hostId }).save();
   }
 
-  async findById(groupId: string): Promise<GroupDocument | null> {
-    return await this.groupModel.findById(groupId);
-  }
-
   async findByCode(inviteCode: string): Promise<GroupDocument | null> {
     return await this.groupModel.findOne({ inviteCode });
   }
@@ -41,8 +37,10 @@ export class GroupsRepository {
   }
 
   async deleteOneByCode(inviteCode: string): Promise<void> {
-    const group = await this.groupModel.deleteOne({ inviteCode });
-    if (group.deletedCount === 0)
-      throw new NotFoundException('해당 그룹을 찾을 수 없습니다.');
+    const result = await this.groupModel.deleteOne({ inviteCode });
+    if (result.deletedCount === 0)
+      throw new NotFoundException(
+        `해당 그룹(${inviteCode})을 찾을 수 없습니다.`,
+      );
   }
 }
