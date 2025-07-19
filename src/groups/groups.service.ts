@@ -3,11 +3,13 @@ import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MembersService } from 'src/members/members.services';
 
 @Injectable()
 export class GroupsService {
   constructor(
     private readonly groupsRepository: GroupsRepository,
+    private readonly membersService: MembersService,
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
   ) {}
 
@@ -15,6 +17,9 @@ export class GroupsService {
   async createGroup(name: string, hostId: string) {
     const inviteCode = await this.generateUniqueInviteCode();
     const group = await this.groupsRepository.create(inviteCode, name, hostId);
+
+    // 방장도 해당 그룹의 멤버로 추가
+    await this.membersService.createMember(inviteCode, hostId);
 
     return {
       message: '✅ 그룹 생성 성공!',
