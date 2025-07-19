@@ -57,6 +57,9 @@ export class MembersService {
   }
 
   async deleteMember(groupCode: string, userId: string) {
+    const group = await this.groupsRepository.findByCode(groupCode);
+    if (group?.hostId === userId)
+      throw new ForbiddenException(`방장은 그룹을 떠날 수 없습니다.`);
     await this.membersRepository.deleteOne(groupCode, userId);
   }
 
