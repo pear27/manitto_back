@@ -31,12 +31,6 @@ export class AuthService {
       code,
     });
 
-    /*
-    if (clientSecret) {
-      // Client Secret 사용하는 경우 append
-      payload.append('client_secret', clientSecret);
-    }*/
-
     const response = await axios.post(
       'https://kauth.kakao.com/oauth/token',
       payload.toString(),

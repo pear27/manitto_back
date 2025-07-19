@@ -26,6 +26,6 @@ export class AuthController {
     const kakaoUser = await this.authService.loginWithKakao(
       kakaoToken.access_token,
     );
-    return res.json(kakaoUser); // 받은 token을 클라이언트에 응답
+    return res.json(kakaoUser); // message(✅ 로그인 성공!), isNewUser, accessToken
   }
 }
