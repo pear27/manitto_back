@@ -15,7 +15,7 @@ export class Member {
   nickname: string;
 
   @Prop() // 마니또 대상자 ID
-  manitoId?: string;
+  manittoId?: string;
 
   @Prop({ default: [] })
   completedMissions: string[]; // ['day1', 'day2', 'free1'...]
@@ -28,3 +28,4 @@ export class Member {
 }
 
 export const MemberSchema = SchemaFactory.createForClass(Member);
+MemberSchema.index({ groupCode: 1, userId: 1 }, { unique: true });
