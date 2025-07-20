@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
+import { UserDocument } from 'src/users/schemas/user.schema';
 import { UsersRepository } from 'src/users/users.repository';
 
 @Injectable()
@@ -62,14 +63,15 @@ export class AuthService {
     const kakaoUser = await this.getKakaoUserInfo(accessToken);
     const kakaoId = kakaoUser.id;
 
-    let user = await this.usersRepository.findOneByKakaoId(kakaoId);
+    let user: UserDocument | null =
+      await this.usersRepository.findOneByKakaoId(kakaoId);
 
     if (!user) {
       user = await this.usersRepository.create({
         kakaoId,
       });
     }
-    const jwt = this.jwtService.sign({ userId: user.kakaoId });
+    const jwt = this.jwtService.sign({ userId: user._id });
 
     return {
       message: '✅ 로그인 성공!',

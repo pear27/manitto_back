@@ -14,6 +14,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { kakaoId: payload.userId }; // accessToken으로부터 kakaoId를 추출하여 리턴
+    return { userId: payload.userId }; // accessToken으로부터 userId를 추출하여 리턴
   }
 }

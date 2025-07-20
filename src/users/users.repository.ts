@@ -8,11 +8,15 @@ import { User, UserDocument } from './schemas/user.schema';
 export class UsersRepository {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async findOneByKakaoId(kakaoId: string): Promise<User | null> {
+  async findOneById(userId: string): Promise<UserDocument | null> {
+    return this.userModel.findById(userId);
+  }
+
+  async findOneByKakaoId(kakaoId: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ kakaoId });
   }
 
-  async create(userData: Partial<User>): Promise<User> {
+  async create(userData: Partial<User>): Promise<UserDocument> {
     const newUser = new this.userModel(userData);
     return newUser.save();
   }
@@ -20,7 +24,7 @@ export class UsersRepository {
   async findOneAndUpdate(
     userFilterQuery: FilterQuery<User>,
     userUpdate: Partial<User>,
-  ): Promise<User | null> {
+  ): Promise<UserDocument | null> {
     return this.userModel.findOneAndUpdate(userFilterQuery, userUpdate);
   }
 

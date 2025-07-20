@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type MemberDocument = Member & Document;
 
@@ -8,20 +8,17 @@ export class Member {
   @Prop({ required: true })
   groupCode: string;
 
-  @Prop({ required: true })
-  userId: string;
+  @Prop({ type: Types.ObjectId, required: true, ref: 'User' })
+  userId: Types.ObjectId;
 
-  @Prop({ required: true })
-  nickname: string;
+  @Prop({ type: Types.ObjectId, ref: 'User' }) // 마니또 대상자 ID
+  manittoId?: Types.ObjectId;
 
-  @Prop() // 마니또 대상자 ID
-  manittoId?: string;
+  @Prop({ type: [Types.ObjectId], default: [], ref: 'MissionLog' })
+  completedMissions: Types.ObjectId[]; // ['day1', 'day2', 'free1'...]
 
-  @Prop({ default: [] })
-  completedMissions: string[]; // ['day1', 'day2', 'free1'...]
-
-  @Prop()
-  predictionManitoId?: string; // 추측 저장
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  predictionManitoId?: Types.ObjectId; // 추측 저장
 
   @Prop()
   predictionUpdatedAt?: Date;

@@ -18,7 +18,10 @@ export class GroupsRepository {
   }
 
   async findByCode(inviteCode: string): Promise<GroupDocument | null> {
-    return await this.groupModel.findOne({ inviteCode });
+    return await this.groupModel
+      .findOne({ inviteCode })
+      .populate<'hostId'>('hostId', '_id nickname')
+      .exec();
   }
 
   async lockGroup(inviteCode: string): Promise<void> {
