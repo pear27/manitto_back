@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 
 import { User, UserDocument } from './schemas/user.schema';
 
@@ -28,8 +28,10 @@ export class UsersRepository {
     return this.userModel.findOneAndUpdate(userFilterQuery, userUpdate);
   }
 
-  async deleteOneByKakaoId(kakaoId: string): Promise<void> {
-    const user = await this.userModel.deleteOne({ kakaoId });
+  async deleteOneById(userId: string): Promise<void> {
+    const user = await this.userModel.deleteOne({
+      _id: new Types.ObjectId(userId),
+    });
 
     if (user.deletedCount === 0)
       throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');

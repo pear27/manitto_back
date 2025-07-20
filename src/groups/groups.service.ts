@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import dayjs from 'dayjs';
 import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
@@ -57,11 +58,16 @@ export class GroupsService {
   // 그룹 잠금 함수 (더 이상 멤버 초대 불가)
   async lockGroup(inviteCode: string, hostId: string) {
     const group = await this.groupsRepository.findByCode(inviteCode);
-    if (!group || group.hostId !== hostId) {
-      throw new ForbiddenException('그룹의 호스트만 그룹을 잠글 수 있습니다.');
-    }
-    await this.groupsRepository.lockGroup(inviteCode);
 
+    if (!group)
+      throw new NotFoundException(
+        `해당 그룹(${inviteCode}을 찾을 수 없습니다.`,
+      );
+    else if (group.hostId._id.toString() !== hostId) {
+      throw new ForbiddenException('그룹의 방장만 그룹을 잠글 수 있습니다.');
+    }
+
+    await this.groupsRepository.lockGroup(inviteCode);
     return {
       message: '✅ 그룹 잠금 완료! 이제 멤버를 초대할 수 없습니다.',
       inviteCode: group.inviteCode,
@@ -72,12 +78,51 @@ export class GroupsService {
   // 그룹 삭제 함수
   async deleteGroup(inviteCode: string, hostId: string) {
     const group = await this.groupsRepository.findByCode(inviteCode);
-    if (!group || group.hostId !== hostId)
-      throw new ForbiddenException(
-        '그룹의 호스트만 그룹을 삭제할 수 있습니다.',
+
+    if (!group)
+      throw new NotFoundException(
+        `해당 그룹(${inviteCode}을 찾을 수 없습니다.`,
       );
+    else if (group.hostId._id.toString() !== hostId)
+      throw new ForbiddenException('그룹의 방장만 그룹을 삭제할 수 있습니다.');
+
     await this.membersRepository.deleteManyByGroup(inviteCode);
     await this.groupsRepository.deleteOneByCode(inviteCode);
+  }
+
+  // 마니또 매칭 함수
+  async matchManittosInGroup(groupCode: string, hostId: string) {
+    const group = await this.groupsRepository.findByCode(groupCode);
+
+    if (!group)
+      throw new NotFoundException(
+        `해당 그룹(${groupCode})을 찾을 수 없습니다.`,
+      );
+    else if (group.hostId._id.toString() !== hostId)
+      throw new ForbiddenException(
+        '그룹의 방장만 마니또 매칭을 시작할 수 있습니다.',
+      );
+
+    if (!group.isLocked || group.isMatched)
+      throw new Error('그룹 초대를 잠금하지 않았거나 이미 매칭된 그룹입니다.');
+
+    await this.membersService.applyManittoMatching(groupCode);
+    await this.groupsRepository.markAsMatched(groupCode);
+
+    const revealDate = dayjs()
+      .add(7, 'day')
+      .hour(9)
+      .minute(0)
+      .second(0)
+      .millisecond(0)
+      .toDate();
+    await this.groupsRepository.setRevealDate(groupCode, revealDate);
+
+    return {
+      message: '✅ 그룹 매칭 완료! 즐거운 마니또 주간 되세요!',
+      inviteCode: group.inviteCode,
+      name: group.name,
+    };
   }
 
   // 고유한 초대코드 생성 함수

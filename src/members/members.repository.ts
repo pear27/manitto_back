@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Member, MemberDocument } from './schemas/member.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class MembersRepository {
@@ -9,23 +9,46 @@ export class MembersRepository {
     @InjectModel(Member.name) private memberModel: Model<MemberDocument>,
   ) {}
 
-  async create(
-    groupCode: string,
-    userId: string,
-    nickname: string,
-  ): Promise<MemberDocument> {
-    return new this.memberModel({ groupCode, userId, nickname }).save();
+  async create(groupCode: string, userId: string): Promise<MemberDocument> {
+    return new this.memberModel({ groupCode, userId }).save();
   }
 
   async findManyByGroup(groupCode: string): Promise<Member[]> {
-    return this.memberModel.find({ groupCode }).exec();
+    return this.memberModel
+      .find({ groupCode })
+      .populate<'userId'>('userId', '_id nickname')
+      .exec();
   }
 
   async findOneByGroupAndUser(
     groupCode: string,
     userId: string,
   ): Promise<MemberDocument | null> {
-    return await this.memberModel.findOne({ groupCode, userId });
+    return await this.memberModel
+      .findOne({ groupCode, userId })
+      .populate<'userId'>('userId', '_id nickname')
+      .exec();
+  }
+
+  async updateManyManitto(
+    matchingResults: {
+      groupCode: string;
+      userId: Types.ObjectId;
+      manittoId: Types.ObjectId;
+    }[],
+  ): Promise<void> {
+    const bulkOps = matchingResults.map(({ groupCode, userId, manittoId }) => ({
+      updateOne: {
+        filter: { groupCode, userId },
+        update: { manittoId },
+      },
+    }));
+    if (bulkOps.length === 0) return;
+
+    const result = await this.memberModel.bulkWrite(bulkOps);
+    console.log(
+      `수정 성공: ${result.modifiedCount}건 / 총 ${bulkOps.length}건`,
+    );
   }
 
   async deleteOne(groupCode: string, userId: string): Promise<void> {

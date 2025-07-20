@@ -1,19 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './schemas/user.schema';
 import { UsersRepository } from './users.repository';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UserService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async getNicknameByKakaoId(kakaoId: string) {
-    const user = await this.usersRepository.findOneByKakaoId(kakaoId);
+  async getNickname(userId: string) {
+    const user = await this.usersRepository.findOneById(userId);
     return { nickname: user?.nickname };
   }
 
-  async updateNicknameByKakaoId(kakaoId: string, nickname: string) {
+  async updateNickname(userId: string, nickname: string) {
     const updatedUser = await this.usersRepository.findOneAndUpdate(
-      { kakaoId },
+      { _id: new Types.ObjectId(userId) },
       { nickname },
     );
 
@@ -26,7 +27,7 @@ export class UserService {
     };
   }
 
-  async deleteUser(kakaoId: string): Promise<void> {
-    await this.usersRepository.deleteOneByKakaoId(kakaoId);
+  async deleteUser(userId: string): Promise<void> {
+    await this.usersRepository.deleteOneById(userId);
   }
 }

@@ -7,9 +7,10 @@ import {
 import { MembersRepository } from './members.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Member, MemberDocument } from './schemas/member.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { UsersRepository } from 'src/users/users.repository';
 import { GroupsRepository } from 'src/groups/groups.repository';
+import { assignManitto } from 'src/common/utils/assignManitto';
 
 @Injectable()
 export class MembersService {
@@ -21,7 +22,7 @@ export class MembersService {
   ) {}
 
   async createMember(groupCode: string, userId: string) {
-    const user = await this.usersRepository.findOneByKakaoId(userId);
+    const user = await this.usersRepository.findOneById(userId);
     const group = await this.groupsRepository.findByCode(groupCode);
 
     if (!user || !group) {
@@ -43,23 +44,25 @@ export class MembersService {
       throw new ConflictException('이미 해당 그룹에 참가한 사용자입니다.');
     }
 
-    const member = await this.membersRepository.create(
-      groupCode,
-      userId,
-      user.nickname,
-    );
+    const member = await this.membersRepository.create(groupCode, userId);
 
     return {
       message: '✅ 그룹에 새 멤버를 추가했습니다!',
       inviteCode: member.groupCode,
-      member: member.nickname,
+      member: member.userId,
     };
   }
 
   async deleteMember(groupCode: string, userId: string) {
     const group = await this.groupsRepository.findByCode(groupCode);
-    if (group?.hostId === userId)
+
+    if (!group)
+      throw new NotFoundException(
+        `해당 그룹(${groupCode})을 찾을 수 없습니다.`,
+      );
+    else if (group.hostId._id.toString() === userId)
       throw new ForbiddenException(`방장은 그룹을 떠날 수 없습니다.`);
+
     await this.membersRepository.deleteOne(groupCode, userId);
   }
 
@@ -75,5 +78,34 @@ export class MembersService {
       );
 
     return await this.membersRepository.findManyByGroup(groupCode);
+  }
+
+  async applyManittoMatching(
+    groupCode: string,
+  ): Promise<{ success: boolean; message?: string }> {
+    const members = await this.membersRepository.findManyByGroup(groupCode);
+
+    const plainMembers = members.map((m) => ({
+      groupCode: m.groupCode,
+      userId: m.userId.toString(),
+    }));
+
+    const matchResults = assignManitto(plainMembers);
+
+    if (!matchResults) {
+      return {
+        success: false,
+        message: '유효한 매칭 결과를 생성하지 못했습니다.',
+      };
+    }
+
+    const resultsWithObjectId = matchResults.map((match) => ({
+      groupCode: match.groupCode,
+      userId: new Types.ObjectId(match.userId),
+      manittoId: new Types.ObjectId(match.manittoId),
+    }));
+
+    await this.membersRepository.updateManyManitto(resultsWithObjectId);
+    return { success: true };
   }
 }
