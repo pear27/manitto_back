@@ -61,19 +61,9 @@ export class MissionLogsService {
       await this.createMissionLog(groupCode, userId, dto1);
       await this.createMissionLog(groupCode, userId, dto2);
     }
+  }
 
-    // members는 멤버 배열
-    // 각 멤버에 대하여
-    /* 
-    const dto1 = {
-      performedAt: 오늘 날짜 (2025-07-21 형태)
-      missionContent: "상대를 칭찬하기";
-    }
-          const dto2 = {
-      performedAt: 내일 날짜 (2025-07-22 형태)
-      missionContent: "함께 식사하기";
-    }
-    await this.createMissionLog(groupCode, userId, dto1)
-        await this.createMissionLog(groupCode, userId, dto2)*/
+  async markAsCompleted(missionLogId: string) {
+    return await this.missionLogsRepository.markAsCompleted(missionLogId);
   }
 }

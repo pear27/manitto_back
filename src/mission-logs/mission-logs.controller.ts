@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { MissionLogsService } from './mission-logs.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateMissionLogDto } from './dto/create-mission-log.dto';
@@ -20,5 +28,14 @@ export class MissionLogsController {
       userId,
       createMissionLogDto,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch()
+  async markAsCompleted(
+    @Req() req,
+    @Body('missionLogId') missionLogId: string,
+  ) {
+    return await this.missionLogsService.markAsCompleted(missionLogId);
   }
 }
