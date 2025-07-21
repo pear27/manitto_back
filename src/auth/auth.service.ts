@@ -79,4 +79,30 @@ export class AuthService {
       accessToken: jwt,
     };
   }
+
+  // 인증코드 저장용 (메모리 or Redis 권장)
+  private oneTimeAuthCodeStore = new Map<string, any>();
+
+  generateOneTimeCode(data: { accessToken: string; isNewUser: boolean }) {
+    const code = Math.random().toString(36).substring(2, 15);
+    this.oneTimeAuthCodeStore.set(code, {
+      ...data,
+      createdAt: Date.now(),
+    });
+    return code;
+  }
+
+  consumeOneTimeCode(code: string) {
+    const data = this.oneTimeAuthCodeStore.get(code);
+    if (!data) return null;
+
+    // 5분 이내 유효성 검사 (옵션)
+    if (Date.now() - data.createdAt > 5 * 60 * 1000) {
+      this.oneTimeAuthCodeStore.delete(code);
+      return null;
+    }
+
+    this.oneTimeAuthCodeStore.delete(code); // 1회용
+    return data;
+  }
 }

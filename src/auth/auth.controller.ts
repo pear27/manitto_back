@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
@@ -26,6 +34,30 @@ export class AuthController {
     const kakaoUser = await this.authService.loginWithKakao(
       kakaoToken.access_token,
     );
-    return res.json(kakaoUser); // message(✅ 로그인 성공!), isNewUser, accessToken
+
+    const authCode = this.authService.generateOneTimeCode({
+      accessToken: kakaoUser.accessToken,
+      isNewUser: kakaoUser.isNewUser,
+    });
+
+    return res.redirect(`http://localhost:3000/oauth?authCode=${authCode}`);
+    //   return res.json(kakaoUser); // message(✅ 로그인 성공!), isNewUser, accessToken
+  }
+
+  @Post('kakao/verify')
+  async kakaoVerify(@Body('authCode') authCode: string) {
+    const data = this.authService.consumeOneTimeCode(authCode);
+
+    if (!data) {
+      throw new UnauthorizedException(
+        '유효하지 않거나 만료된 인증 코드입니다.',
+      );
+    }
+
+    return {
+      message: '✅ 로그인 성공!',
+      accessToken: data.accessToken,
+      isNewUser: data.isNewUser,
+    };
   }
 }
