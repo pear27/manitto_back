@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import dayjs from 'dayjs';
 import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,6 +10,7 @@ import { Date, Model } from 'mongoose';
 import { MembersService } from 'src/members/members.service';
 import { MembersRepository } from 'src/members/members.repository';
 import { CreateGroupDto } from './dto/create-group.dto';
+import { MissionLogsService } from 'src/mission-logs/mission-logs.service';
 
 export interface CreateGroupWithHostDto extends CreateGroupDto {
   hostId: string;
@@ -22,6 +22,7 @@ export class GroupsService {
     private readonly groupsRepository: GroupsRepository,
     private readonly membersRepository: MembersRepository,
     private readonly membersService: MembersService,
+    private readonly missionLogsService: MissionLogsService,
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
   ) {}
 
@@ -135,16 +136,8 @@ export class GroupsService {
       throw new Error('그룹 초대를 잠금하지 않았거나 이미 매칭된 그룹입니다.');
 
     await this.membersService.applyManittoMatching(groupCode);
+    await this.missionLogsService.createDefaultMissions(groupCode);
     await this.groupsRepository.markAsMatched(groupCode);
-
-    const revealDate = dayjs()
-      .add(7, 'day')
-      .hour(9)
-      .minute(0)
-      .second(0)
-      .millisecond(0)
-      .toDate();
-    await this.groupsRepository.setRevealDate(groupCode, revealDate);
 
     return {
       message: '✅ 그룹 매칭 완료! 즐거운 마니또 주간 되세요!',

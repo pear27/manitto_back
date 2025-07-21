@@ -40,27 +40,88 @@ export class MembersRepository {
       )
       .populate<'userId'>('userId', '_id nickname')
       .populate<'manittoId'>('manittoId', '_id nickname')
+      .populate<'completedMissions'>(
+        'completedMissions',
+        '_id letterToReceiver missionContent performedAt isNotificationSent isCompleted',
+      )
+      .exec();
+  }
+
+  async findOneByGroupAndManitto(
+    groupCode: string,
+    manittoId: string,
+  ): Promise<MemberDocument | null> {
+    return await this.memberModel
+      .findOne({ groupCode, manittoId })
+      .populate<'groupId'>(
+        'groupId',
+        '_id name description isLocked isMatched revealDate',
+      )
+      .populate<'userId'>('userId', '_id nickname')
+      .populate<'manittoId'>('manittoId', '_id nickname')
+      .populate<'completedMissions'>(
+        'completedMissions',
+        '_id letterToReceiver missionContent performedAt isNotificationSent isCompleted',
+      )
       .exec();
   }
 
   async updateManyManitto(
     matchingResults: {
       groupCode: string;
-      userId: Types.ObjectId;
-      manittoId: Types.ObjectId;
+      userId: string;
+      manittoId: string;
     }[],
   ): Promise<void> {
+    console.log('matchingResults(매칭 결과):', matchingResults);
+
     const bulkOps = matchingResults.map(({ groupCode, userId, manittoId }) => ({
       updateOne: {
         filter: { groupCode, userId },
-        update: { manittoId },
+        update: { $set: { manittoId } },
       },
     }));
     if (bulkOps.length === 0) return;
+    console.log('bulkWrite ops:', bulkOps);
 
     const result = await this.memberModel.bulkWrite(bulkOps);
+    console.log('bulkWrite result:', result);
+
     console.log(
       `수정 성공: ${result.modifiedCount}건 / 총 ${bulkOps.length}건`,
+    );
+  }
+
+  // 새로운 미션 로그 ID를 Member에 추가하기
+  async addMissionLogToArray(
+    memberId: string,
+    missionLogId: string,
+  ): Promise<void> {
+    const result = await this.memberModel.updateOne(
+      { _id: new Types.ObjectId(memberId) },
+      {
+        $addToSet: {
+          completedMissions: new Types.ObjectId(missionLogId), // 중복 없이 배열에 추가
+        },
+      },
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException(
+        `Member(${memberId})를 찾을 수 없거나 이미 missionLogId가 포함되어 있습니다.`,
+      );
+    }
+  }
+
+  // 나의 마니또 누구인지 맞춰보기
+  async updatePredictionManitto(
+    groupCode: string,
+    userId: string,
+    predictionManitto: string,
+  ): Promise<void> {
+    await this.memberModel.updateOne(
+      { groupCode, userId },
+      { $set: { predictionManitto } }, // null이어도 덮어쓰기
     );
   }
 

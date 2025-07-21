@@ -109,11 +109,10 @@ export class MembersService {
 
     const plainMembers = members.map((m) => ({
       groupCode: m.groupCode,
-      userId: m.userId.toString(),
+      userId: m.userId._id.toString(),
     }));
 
     const matchResults = assignManitto(plainMembers);
-
     if (!matchResults) {
       return {
         success: false,
@@ -127,7 +126,33 @@ export class MembersService {
       manittoId: new Types.ObjectId(match.manittoId),
     }));
 
-    await this.membersRepository.updateManyManitto(resultsWithObjectId);
+    await this.membersRepository.updateManyManitto(matchResults);
     return { success: true };
+  }
+
+  async guessMyManitto(
+    groupCode: string,
+    userId: string,
+    predictionManitto: string,
+  ) {
+    await this.membersRepository.updatePredictionManitto(
+      groupCode,
+      userId,
+      predictionManitto,
+    );
+  }
+  async getMyManittoInfo(groupCode: string, userId: string) {
+    const manittoId = userId;
+    const member = await this.membersRepository.findOneByGroupAndManitto(
+      groupCode,
+      manittoId,
+    );
+
+    if (!member)
+      throw new ForbiddenException(
+        `그룹(${groupCode})에 해당 멤버가 없습니다.`,
+      );
+
+    return member;
   }
 }

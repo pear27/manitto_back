@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type MemberDocument = Member & Document;
+export type MemberDocument = Member & Document & { _id: Types.ObjectId };
 
 @Schema()
 export class Member {
@@ -20,8 +20,8 @@ export class Member {
   @Prop({ type: [Types.ObjectId], default: [], ref: 'MissionLog' })
   completedMissions: Types.ObjectId[]; // ['day1', 'day2', 'free1'...]
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
-  predictionManitoId?: Types.ObjectId; // 추측 저장
+  @Prop()
+  predictionManitto?: string; // 추측 저장
 
   @Prop()
   predictionUpdatedAt?: Date;

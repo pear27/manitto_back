@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { GroupsModule } from './groups/groups.module';
 import { MembersModule } from './members/members.module';
+import { MissionLogModule } from './mission-logs/mission-logs.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MembersModule } from './members/members.module';
     UsersModule,
     GroupsModule,
     MembersModule,
+    MissionLogModule,
   ],
   providers: [AppService],
 })
