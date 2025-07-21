@@ -25,10 +25,12 @@ export class MembersService {
     const user = await this.usersRepository.findOneById(userId);
     const group = await this.groupsRepository.findByCode(groupCode);
 
-    if (!user || !group) {
-      throw new NotFoundException(
-        `사용자(${userId}) 또는 그룹(${groupCode})을 찾을 수 없습니다.`,
-      );
+    if (!group) {
+      throw new NotFoundException(`그룹(${groupCode})을 찾을 수 없습니다.`);
+    }
+
+    if (!user) {
+      throw new NotFoundException(`사용자(${userId})를 찾을 수 없습니다.`);
     }
 
     if (group.isLocked)
@@ -44,13 +46,33 @@ export class MembersService {
       throw new ConflictException('이미 해당 그룹에 참가한 사용자입니다.');
     }
 
-    const member = await this.membersRepository.create(groupCode, userId);
+    const groupId = group._id.toString();
+
+    const member = await this.membersRepository.create(
+      groupId,
+      groupCode,
+      userId,
+    );
 
     return {
       message: '✅ 그룹에 새 멤버를 추가했습니다!',
       inviteCode: member.groupCode,
       member: member.userId,
     };
+  }
+
+  async getMyMemberInfo(groupCode: string, userId: string) {
+    const member = await this.membersRepository.findOneByGroupAndUser(
+      groupCode,
+      userId,
+    );
+
+    if (!member)
+      throw new ForbiddenException(
+        `그룹(${groupCode})에 해당 멤버가 없습니다.`,
+      );
+
+    return member;
   }
 
   async deleteMember(groupCode: string, userId: string) {

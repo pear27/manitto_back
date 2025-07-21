@@ -9,8 +9,12 @@ export class MembersRepository {
     @InjectModel(Member.name) private memberModel: Model<MemberDocument>,
   ) {}
 
-  async create(groupCode: string, userId: string): Promise<MemberDocument> {
-    return new this.memberModel({ groupCode, userId }).save();
+  async create(
+    groupId: string,
+    groupCode: string,
+    userId: string,
+  ): Promise<MemberDocument> {
+    return new this.memberModel({ groupId, groupCode, userId }).save();
   }
 
   async findManyByGroup(groupCode: string): Promise<Member[]> {
@@ -20,13 +24,22 @@ export class MembersRepository {
       .exec();
   }
 
+  async findManyByUser(userId: string): Promise<Member[]> {
+    return this.memberModel.find({ userId }).exec();
+  }
+
   async findOneByGroupAndUser(
     groupCode: string,
     userId: string,
   ): Promise<MemberDocument | null> {
     return await this.memberModel
       .findOne({ groupCode, userId })
+      .populate<'groupId'>(
+        'groupId',
+        '_id name description isLocked isMatched revealDate',
+      )
       .populate<'userId'>('userId', '_id nickname')
+      .populate<'manittoId'>('manittoId', '_id nickname')
       .exec();
   }
 

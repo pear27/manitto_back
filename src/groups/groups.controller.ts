@@ -12,6 +12,7 @@ import {
 import { GroupsService } from './groups.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { MembersService } from 'src/members/members.service';
+import { CreateGroupDto } from './dto/create-group.dto';
 
 @Controller('groups')
 export class GroupsController {
@@ -23,9 +24,18 @@ export class GroupsController {
   // 그룹 생성하기
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createGroup(@Req() req, @Body('name') name: string) {
+  async createGroup(@Req() req, @Body() createGroupDto: CreateGroupDto) {
     const hostId = req.user.userId;
-    return await this.groupsService.createGroup(name, hostId);
+    return await this.groupsService.createGroup({ ...createGroupDto, hostId });
+  }
+
+  // 내가 참여한 그룹 목록 불러오기
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getGroups(@Req() req) {
+    const userId = req.user.userId;
+    return await this.groupsService.getMyGroupList(userId);
+    // return 어쩌구
   }
 
   // 그룹 정보 가져오기

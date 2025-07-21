@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type GroupDocument = Group & Document;
+export type GroupDocument = Group & Document & { _id: Types.ObjectId };
 
 @Schema()
 export class Group {
@@ -10,6 +10,9 @@ export class Group {
 
   @Prop({ required: true })
   name: string; // 그룹 이름
+
+  @Prop()
+  description: string; // 그룹 설명
 
   @Prop({ type: Types.ObjectId, required: true, ref: 'User' })
   hostId: Types.ObjectId; // 방장 _id
@@ -23,7 +26,7 @@ export class Group {
   @Prop({ type: Date })
   matchedAt?: Date; // 매칭 시작 시간
 
-  @Prop({ type: Date })
+  @Prop({ type: Date, required: true })
   revealDate?: Date; // 마니또 공개 시간
 }
 

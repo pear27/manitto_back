@@ -2,6 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Group, GroupDocument } from './schemas/group.schema';
 import { Model } from 'mongoose';
+import { CreateGroupWithHostDto } from './groups.service';
+
+export interface CreateGroupFinalDto extends CreateGroupWithHostDto {
+  inviteCode: string;
+}
 
 @Injectable()
 export class GroupsRepository {
@@ -9,12 +14,9 @@ export class GroupsRepository {
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
   ) {}
 
-  async create(
-    inviteCode: string,
-    name: string,
-    hostId: string,
-  ): Promise<GroupDocument> {
-    return new this.groupModel({ inviteCode, name, hostId }).save();
+  async create(dto: CreateGroupFinalDto): Promise<GroupDocument> {
+    const plain = { ...dto }; // DTO → 순수 객체
+    return await new this.groupModel(plain).save();
   }
 
   async findByCode(inviteCode: string): Promise<GroupDocument | null> {

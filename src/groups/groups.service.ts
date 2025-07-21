@@ -7,9 +7,14 @@ import dayjs from 'dayjs';
 import { Group, GroupDocument } from './schemas/group.schema';
 import { GroupsRepository } from './groups.repository';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Date, Model } from 'mongoose';
 import { MembersService } from 'src/members/members.service';
 import { MembersRepository } from 'src/members/members.repository';
+import { CreateGroupDto } from './dto/create-group.dto';
+
+export interface CreateGroupWithHostDto extends CreateGroupDto {
+  hostId: string;
+}
 
 @Injectable()
 export class GroupsService {
@@ -21,12 +26,15 @@ export class GroupsService {
   ) {}
 
   // 그룹 생성 함수
-  async createGroup(name: string, hostId: string) {
+  async createGroup(dto: CreateGroupWithHostDto) {
     const inviteCode = await this.generateUniqueInviteCode();
-    const group = await this.groupsRepository.create(inviteCode, name, hostId);
+    const group = await this.groupsRepository.create({
+      ...dto,
+      inviteCode,
+    });
 
     // 방장도 해당 그룹의 멤버로 추가
-    await this.membersService.createMember(inviteCode, hostId);
+    await this.membersService.createMember(inviteCode, dto.hostId);
 
     return {
       message: '✅ 그룹 생성 성공!',
@@ -35,6 +43,26 @@ export class GroupsService {
     };
   }
 
+  // 내가 참여한 그룹 리스트 가져오기
+  async getMyGroupList(userId: string) {
+    const myMembers = await this.membersRepository.findManyByUser(userId);
+    if (myMembers.length === 0)
+      throw new NotFoundException(
+        '해당 사용자가 참여하고 있는 그룹이 없습니다.',
+      );
+
+    const groupCodes = myMembers.map((member) => member.groupCode);
+
+    const groupPromises = groupCodes.map((code) =>
+      this.groupsRepository.findByCode(code),
+    );
+    const groups = await Promise.all(groupPromises);
+
+    // null 필터링 (유효하지 않은 groupCode가 있을 경우)
+    return groups.filter((group) => group !== null);
+  }
+
+  // 특정 그룹의 정보 가져오기
   async getGroupInfo(inviteCode: string, userId: string) {
     const group = await this.groupsRepository.findByCode(inviteCode);
     if (!group)

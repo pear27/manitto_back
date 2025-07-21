@@ -5,6 +5,9 @@ export type MemberDocument = Member & Document;
 
 @Schema()
 export class Member {
+  @Prop({ type: Types.ObjectId, ref: 'Group' })
+  groupId?: Types.ObjectId; // 우선 선택적으로만 사용
+
   @Prop({ required: true })
   groupCode: string;
 
