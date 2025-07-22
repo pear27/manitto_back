@@ -40,8 +40,9 @@ export class AuthController {
       isNewUser: kakaoUser.isNewUser,
     });
 
-    return res.redirect(`http://localhost:3000/oauth?authCode=${authCode}`);
-    //   return res.json(kakaoUser); // message(✅ 로그인 성공!), isNewUser, accessToken
+    return res.redirect(
+      `https://manitto-front.vercel.app/oauth?authCode=${authCode}`,
+    );
   }
 
   @Post('kakao/verify')
